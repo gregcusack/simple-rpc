@@ -1,0 +1,19 @@
+[package]
+name = "simple-rpc"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+log = "0.4.22"
+memmap2 = "0.5.10"
+agave-geyser-plugin-interface = { path = "/home/sol/solana/geyser-plugin-interface" }
+solana-program = { path = "/home/sol/solana/sdk/program" }
+solana-gossip = { path = "/home/sol/solana/gossip" }
+solana-logger = { path = "/home/sol/solana/logger" }
+
+[patch.crates-io]
+solana-program = { path = "/home/sol/solana/sdk/program" }
+solana-zk-token-sdk = { path = "/home/sol/solana/zk-token-sdk"}
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
