@@ -25,19 +25,20 @@ fn main() {
     let shm_path = Path::new(SHM_PATH);
     let file = OpenOptions::new()
         .read(true)
+        .write(true) // Add write permission
         .open(&shm_path)
         .expect("Failed to open shared memory file");
 
     // Memory-map the file
     let mmap = unsafe {
         MmapOptions::new()
-            .map(&file)
+            .map_mut(&file)
             .expect("Failed to map shared memory")
     };
 
     // Get pointers to head and tail
     let head_ptr = &mmap[..size_of::<u64>()] as *const [u8] as *const AtomicU64;
-    let tail_ptr = &mmap[size_of::<u64>()..size_of::<u64>() * 2] as *const [u8] as *const AtomicU64;
+    let tail_ptr = &mmap[size_of::<u64>()..size_of::<u64>() * 2] as *const [u8] as *mut AtomicU64;
 
     let head = unsafe { &*head_ptr };
     let tail = unsafe { &*tail_ptr };
@@ -49,7 +50,9 @@ fn main() {
 
         // Calculate the number of new entries
         let entries_available = current_head - current_tail;
+        info!("entries_available: {}", entries_available);
 
+        let mut count = 0;
         if entries_available > 0 {
             // Read new entries
             for _ in 0..entries_available {
@@ -64,11 +67,12 @@ fn main() {
                 info!("new ffi_ci -> pk: {}, wc: {}, sv: {}", Pubkey::from(ffi_ci.pubkey), ffi_ci.wallclock, ffi_ci.shred_version);
 
                 current_tail += 1;
+                count += 1;
             }
-
             // Update tail
             tail.store(current_tail, Ordering::SeqCst);
         }
+        info!("greg: count: {}", count);
 
         // Sleep for 5 seconds
         thread::sleep(Duration::from_secs(1));
